@@ -1,0 +1,15 @@
+@import url("https://fonts.googleapis.com/css2?family=Staatliches");
+@import url("https://fonts.googleapis.com/css2?family=Ubuntu+Sans");
+@import "tailwindcss";
+
+@theme {
+  --color-vtdarkblue: #0A2647;
+  --color-vtblue: #144272;
+  --color-vtlightblue: #2C74B3;
+  --color-vtblack: #051118;
+  --color-vtwhite: #F7F7F7;
+  --color-vtredacc: #BE3133;
+
+  --font-titles: "Staatliches", sans-serif;
+  --font-text: "Ubuntu Sans", sans-serif;
+}
