@@ -27,14 +27,14 @@ export function useCivilCorps(): UseCivilCorps {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/civil-corps';
 
   const handleRequest = async <T,>(url: string, options?: RequestInit): Promise<T | undefined> => {
     setLoading(true);
     setError(null);
     
     try {
-      const response = await fetch(`${API_BASE_URL}${url}`, {
+      const response = await fetch(`${API_BASE_URL}`, {
         headers: {
           'Content-Type': 'application/json',
         },

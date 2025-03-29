@@ -61,7 +61,7 @@ export default function CivilProtectionRegister() {
       
       if (result) {
         toast.success('Unidad registrada con éxito!')
-        router.push('/civil-corps/dashboard')
+        router.push('/dashboard')
       }
     } catch (err) {
       toast.error('Error al registrar la unidad. Por favor intenta nuevamente')

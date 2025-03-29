@@ -15,10 +15,23 @@ function Dashboard() {
 
   useEffect(() => {
     getAllAlerts();
-  }, [getAllAlerts]);
+  }, []);
 
-  const normalizedAlerts = alerts.map(toAlertData);
-
+// Dashboard.tsx
+const normalizedAlerts = alerts.map(alert => {
+  const alertData = toAlertData({
+    _id: alert._id,
+    suceso: alert.descripcion,
+    ubicacion: {
+      latitud: alert.ubicacion.latitud,
+      longitud: alert.ubicacion.longitud
+    },
+    fecha: alert.fecha,
+    clasificacion: alert.clasificacion,
+    severidad: alert.severidad // Nuevo campo añadido
+  });
+  return alertData;
+});
   const filteredAlerts =
     filter === "all"
       ? normalizedAlerts

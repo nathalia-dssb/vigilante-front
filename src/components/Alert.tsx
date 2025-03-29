@@ -3,18 +3,16 @@
 import { Card, CardHeader, CardDescription } from "@/components/ui/card";
 import { useState, useEffect, useCallback } from "react";
 import React from "react";
-import { AlertSeverity, toAlertSeverity } from "@/types/types";
+import { AlertSeverity, AlertType, AlertData as TypesAlertData, toAlertSeverity } from "@/types/types";
 import Image from "next/image";
 
-interface AlertData {
-  id?: string;
-  title: string;
-  description: string;
-  latitude: number;
-  longitude: number;
-  severity?: AlertSeverity;
-  type?: string;
-  updatedAt?: string;
+// Definimos AlertData extendiendo el tipo original y asegurando todos los campos requeridos
+interface AlertData extends Omit<TypesAlertData, 'updatedAt'> {
+    id: string;
+    title: string;
+    updatedAt?: string; // Opcional
+    severity?: AlertSeverity; // Opcional
+    type?: AlertType; // Opcional
 }
 
 interface GoogleMapEmbedProps {
@@ -63,7 +61,10 @@ const getAlertImage = (type?: string) => {
     seguridad: '/images/security-alert.png',
     transporte: '/images/traffic-alert.png',
     salud: '/images/health-alert.png',
-    // Agrega más tipos según necesites
+    ambiental: '/images/environment-alert.png',
+    social: '/images/social-alert.png',
+    transito: '/images/traffic-alert.png',
+    emergencia: '/images/emergency-alert.png'
   };
   return images[type || 'seguridad'] || '/images/default-alert.png';
 };
@@ -73,7 +74,9 @@ const getAlertDescription = (type?: string) => {
     seguridad: 'Alerta relacionada con seguridad pública',
     transporte: 'Alerta sobre problemas de transporte',
     salud: 'Alerta relacionada con salud pública',
-    // Agrega más descripciones según necesites
+    ambiental: 'Alerta ambiental o ecológica',
+    social: 'Alerta sobre disturbios sociales',
+    transito: 'Alerta sobre accidentes de tránsito'
   };
   return descriptions[type || 'seguridad'] || 'Alerta general';
 };
@@ -85,38 +88,37 @@ export default function Alert({
   expanded = false,
   onClick,
 }: AlertProps) {
+  // Estado inicial completo con todos los campos requeridos
   const [alertData, setAlertData] = useState<AlertData>({
+    id: 'loading',
     title: "Cargando...",
     description: "Obteniendo información de la alerta...",
     latitude: defaultLocation.latitude,
     longitude: defaultLocation.longitude,
+    severity: 'media',
+    type: 'seguridad'
   });
 
   const [isLoading, setIsLoading] = useState(!data);
 
-  // Memoizamos la función de normalización
+  // Función de normalización robusta que maneja todos los campos
   const normalizeAlertData = useCallback((rawData: any): AlertData => {
     return {
-      id: rawData.id,
-      title: rawData.title || 'Sin título',
-      description: rawData.description || 'Sin descripción',
-      latitude: rawData.latitude || defaultLocation.latitude,
-      longitude: rawData.longitude || defaultLocation.longitude,
-      severity: toAlertSeverity(rawData.severity),
-      type: rawData.type,
-      updatedAt: rawData.updatedAt || new Date().toISOString()
+      id: rawData.id || rawData._id || '',
+      title: rawData.suceso || rawData.title || 'Sin título',
+      description: rawData.description || rawData.suceso || 'Sin descripción',
+      latitude: rawData.latitude || rawData.ubicacion?.latitud || defaultLocation.latitude,
+      longitude: rawData.longitude || rawData.ubicacion?.longitud || defaultLocation.longitude,
+      severity: toAlertSeverity(rawData.severity || rawData.severidad),
+      type: rawData.type || 'seguridad',
+      updatedAt: rawData.updatedAt || rawData.fecha || new Date().toISOString()
     };
   }, [defaultLocation.latitude, defaultLocation.longitude]);
 
   useEffect(() => {
     if (data) {
       const normalizedData = normalizeAlertData(data);
-      // Solo actualizamos si los datos son diferentes
-      setAlertData(prev => {
-        return JSON.stringify(normalizedData) !== JSON.stringify(prev) 
-          ? normalizedData 
-          : prev;
-      });
+      setAlertData(normalizedData);
       setIsLoading(false);
       return;
     }
@@ -125,29 +127,21 @@ export default function Alert({
       const fetchAlertData = async () => {
         try {
           const response = await fetch(apiEndpoint);
-          if (!response.ok) {
-            throw new Error(`Error HTTP: ${response.status}`);
-          }
+          if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
           const fetchedData = await response.json();
           const normalizedData = normalizeAlertData(fetchedData);
-          setAlertData(prev => {
-            return JSON.stringify(normalizedData) !== JSON.stringify(prev) 
-              ? normalizedData 
-              : prev;
-          });
+          setAlertData(normalizedData);
           setIsLoading(false);
         } catch (error) {
           console.error("Error al obtener datos de alerta:", error);
-          const errorData = {
+          setAlertData({
+            id: 'error',
             title: "Error",
             description: "No se pudieron cargar los datos de la alerta",
             latitude: defaultLocation.latitude,
             longitude: defaultLocation.longitude,
-          };
-          setAlertData(prev => {
-            return JSON.stringify(errorData) !== JSON.stringify(prev) 
-              ? errorData 
-              : prev;
+            severity: 'media',
+            type: 'seguridad' // Usar un valor válido de AlertType
           });
           setIsLoading(false);
         }
@@ -156,17 +150,15 @@ export default function Alert({
       fetchAlertData();
     } else {
       console.warn("No se proporcionaron datos ni API endpoint para Alert");
-      const exampleData = {
-        title: "Datos de ejemplo",
-        description: "Estos son datos de ejemplo al no proporcionar datos reales",
+      setAlertData({
+        id: 'error',
+        title: "Error",
+        description: "No se pudieron cargar los datos de la alerta",
         latitude: defaultLocation.latitude,
         longitude: defaultLocation.longitude,
-      };
-      setAlertData(prev => {
-        return JSON.stringify(exampleData) !== JSON.stringify(prev) 
-          ? exampleData 
-          : prev;
-      });
+        severity: 'media',
+        type: 'seguridad' // Usar un valor válido de AlertType
+        });
       setIsLoading(false);
     }
   }, [data, apiEndpoint, normalizeAlertData, defaultLocation.latitude, defaultLocation.longitude]);
@@ -212,7 +204,7 @@ export default function Alert({
         >
           <div className="flex justify-between items-center">
             <h1 className={`font-bold ${expanded ? "text-2xl" : "text-xl"} text-current`}>
-              {alertData.title}
+              {alertData.type}
             </h1>
             {alertData.severity && (
               <span className={`px-2 py-1 text-xs rounded-full ${getSeverityStyle()}`}>
@@ -252,7 +244,7 @@ export default function Alert({
                 <p><strong>Última actualización:</strong> {alertData.updatedAt ? new Date(alertData.updatedAt).toLocaleString() : "Hace 5 min"}</p>
               </div>
               
-              {/* Línea separadora con imagen - Versión corregida */}
+              {/* Línea separadora con imagen */}
               <div className="md:col-span-2 border-t border-gray-200 pt-4">
                 <div className="flex flex-col items-center">
                   <h3 className="font-semibold mb-2">Tipo de Alerta</h3>

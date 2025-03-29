@@ -3,20 +3,28 @@ import { useState, useRef, useEffect } from 'react'
 import { AltArrowLeft, ChatSquare } from "@solar-icons/react"
 import { motion } from "framer-motion"
 import Link from 'next/link'
+import { useAssistant } from '@/hooks/useAsistant'
 
 export default function Asistencia() {
   const [input, setInput] = useState('')
-  const [messages, setMessages] = useState<Array<{text: string, isUser: boolean}>>([])
-  const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const { 
+    messages, 
+    loading: isLoading, 
+    error, 
+    sendMessage, 
+    clearMessages 
+  } = useAssistant()
 
   // Mensaje inicial del asistente
   useEffect(() => {
-    setMessages([{
-      text: "¡Hola! Soy tu asistente de seguridad VIGILANTE. ¿En qué puedo ayudarte hoy? Puedes preguntarme sobre alertas, protocolos de emergencia o el funcionamiento de nuestra plataforma.",
-      isUser: false
-    }])
-  }, [])
+    clearMessages()
+    // Agregar mensaje inicial
+    sendMessage('saludo').then(() => {
+      // Esto activará el mensaje de bienvenida
+      // Necesitarás manejar este caso especial en tu API
+    })
+  }, [clearMessages, sendMessage])
 
   // Auto-scroll al final de los mensajes
   useEffect(() => {
@@ -27,46 +35,15 @@ export default function Asistencia() {
     e.preventDefault()
     if (!input.trim()) return
 
-    // Agregar mensaje del usuario
-    const userMessage = { text: input, isUser: true }
-    setMessages(prev => [...prev, userMessage])
+    await sendMessage(input)
     setInput('')
-    setIsLoading(true)
-
-    try {
-      // Aquí integrarías la llamada a la API de Gemini
-      // Ejemplo simulado:
-      const response = await simulateGeminiCall(input)
-      
-      // Agregar respuesta del asistente
-      setMessages(prev => [...prev, {
-        text: response,
-        isUser: false
-      }])
-    // En la función handleSubmit, modifica el bloque catch:
-    } catch (error) {
-        console.error('Error al obtener respuesta:', error); // <-- Aquí usamos el error
-        setMessages(prev => [...prev, {
-        text: "Lo siento, estoy teniendo dificultades para responder. Por favor intenta nuevamente más tarde.",
-        isUser: false
-        }])
-    } finally {
-        setIsLoading(false)
-    }
   }
 
-  // Función de simulación - reemplazar con llamada real a Gemini
-  const simulateGeminiCall = async (query: string): Promise<string> => {
-    await new Promise(resolve => setTimeout(resolve, 1000)) // Simular delay de red
-    
-    const responses: Record<string, string> = {
-      "hola": "¡Hola! ¿Cómo puedo ayudarte con información sobre seguridad y alertas hoy?",
-      "protocolo de incendio": "El protocolo para incendios incluye: 1) Activar la alarma, 2) Llamar al 911, 3) Usar extintores solo si es seguro, 4) Evacuar por rutas señaladas, 5) No usar ascensores.",
-      "cómo reportar una emergencia": "Puedes reportar emergencias: 1) Por la app VIGILANTE (botón rojo), 2) Llamando al 911, 3) En nuestro sitio web en la sección 'Reportes'.",
-      "qué hacer en un sismo": "Durante un sismo: 1) Conserva la calma, 2) Busca un lugar seguro (triángulo de vida), 3) Aléjate de ventanas, 4) Si estás en silla de ruedas, frena y cubre cabeza, 5) Después del sismo, evacúa con precaución."
-    }
-
-    return responses[query.toLowerCase()] || "Como asistente de seguridad VIGILANTE, te recomiendo: 1) Mantener la calma, 2) Seguir los protocolos establecidos, 3) Usar nuestra app para reportar cualquier incidente. ¿Necesitas información más específica sobre algún protocolo de seguridad?"
+  // Sugerencias rápidas
+  const handleSuggestionClick = async (suggestion: string) => {
+    setInput(suggestion)
+    await sendMessage(suggestion)
+    setInput('')
   }
 
   return (
@@ -83,6 +60,12 @@ export default function Asistencia() {
             Volver al inicio
           </Link>
         </div>
+
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {error}
+          </div>
+        )}
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -176,7 +159,7 @@ export default function Asistencia() {
             ].map((suggestion, index) => (
               <button
                 key={index}
-                onClick={() => setInput(suggestion)}
+                onClick={() => handleSuggestionClick(suggestion)}
                 className="bg-vtblue/5 hover:bg-vtblue/10 border border-vtblue/20 rounded-lg px-4 py-3 text-sm transition-colors text-start"
               >
                 {suggestion}
