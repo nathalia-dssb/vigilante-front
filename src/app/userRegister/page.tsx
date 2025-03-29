@@ -5,11 +5,8 @@ import { Button } from "@/components/ui/button"
 import { Eye, Shield, User, HeartPulse, CheckCircle } from "@solar-icons/react"
 import Link from "next/link"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import Image from "next/image"
-import Logo from "@/public/Logo.svg"; // Asegúrate de tener el SVG en la carpeta public
 
-
-export default function Register() {
+export default function userRegister() {
   return (
     <div className="min-h-screen flex">
       {/* Sección izquierda - Formulario */}
@@ -68,7 +65,7 @@ export default function Register() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="gender">Género*</Label>
+                  <Label htmlFor="gender">Sexo*</Label>
                   <Select required>
                     <SelectTrigger>
                       <SelectValue placeholder="Seleccionar" />
@@ -76,8 +73,6 @@ export default function Register() {
                     <SelectContent>
                       <SelectItem value="male">Masculino</SelectItem>
                       <SelectItem value="female">Femenino</SelectItem>
-                      <SelectItem value="other">Otro</SelectItem>
-                      <SelectItem value="unspecified">Prefiero no decir</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

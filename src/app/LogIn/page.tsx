@@ -110,7 +110,7 @@ export default function Login() {
 
           <div className="text-center text-sm text-gray-600 dark:text-gray-400">
             ¿No tienes una cuenta?{' '}
-            <Link href="/register" className="font-medium text-primary hover:underline">
+            <Link href="/userRegister" className="font-medium text-primary hover:underline">
               Regístrate ahora
             </Link>
           </div>
