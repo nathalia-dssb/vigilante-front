@@ -22,7 +22,7 @@ export default function HeroSection() {
               </h1>
               
               <p className="text-lg md:text-xl mt-6 text-vtblack/90">
-                Vigilante integra vigilancia por IA, coordinación en salud y protección ciudadana 
+                VIGILANTE integra vigilancia por IA, coordinación en salud y protección ciudadana 
                 en un único ecosistema cloud para una seguridad proactiva las 24 horas.
               </p>
             </motion.div>

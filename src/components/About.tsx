@@ -22,7 +22,7 @@ export default function AboutUs() {
                   Nuestra <span className="text-vtblue">Tecnología</span> Protege lo que más Importa
                 </h1>
                 <p className="text-lg md:text-xl mt-6 text-vtblack/90">
-                  En Vigilante, combinamos innovación y compromiso para crear un ecosistema de seguridad integral que protege comunidades, empresas y familias.
+                  En VIGILANTE, combinamos innovación y compromiso para crear un ecosistema de seguridad integral que protege comunidades, empresas y familias.
                 </p>
               </motion.div>
             </div>
@@ -65,7 +65,7 @@ export default function AboutUs() {
                 </h2>
                 <div className="space-y-6 text-lg">
                   <p>
-                    Fundada en 2025, Vigilante nació de la necesidad de integrar seguridad física y digital en un solo ecosistema inteligente.
+                    Fundada en 2025, VIGILANTE nació de la necesidad de integrar seguridad física y digital en un solo ecosistema inteligente.
                   </p>
                   <p>
                     Nuestro equipo de expertos en IA, seguridad cibernética y salud pública trabajan para anticipar riesgos antes de que ocurran.

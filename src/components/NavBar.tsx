@@ -56,7 +56,7 @@ export default function NavBar() {
                 className="h-8 w-auto mr-3"
               />
               <span className="text-xl font-bold text-white dark:text-white">
-                Vigilante
+                VIGILANTE
               </span>
             </Link>
 

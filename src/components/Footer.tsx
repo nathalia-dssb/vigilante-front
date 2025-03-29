@@ -28,7 +28,7 @@ export default function Footer() {
           >
             <div className="flex items-center gap-3">
               <Shield className="h-8 w-8 text-vtblue" />
-              <span className="text-2xl font-bold">Vigilante</span>
+              <span className="text-2xl font-bold">VIGILANTE</span>
             </div>
             <p className="text-vtwhite/80">
               Tecnología de seguridad integrada para proteger comunidades, empresas y familias.
@@ -135,7 +135,7 @@ export default function Footer() {
             viewport={{ once: true }}
             className="text-sm text-vtwhite/60"
           >
-            © {new Date().getFullYear()} Vigilante. Todos los derechos reservados.
+            © {new Date().getFullYear()} VIGILANTE. Todos los derechos reservados.
           </motion.div>
 
           <motion.div
