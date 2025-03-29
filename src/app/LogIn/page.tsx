@@ -110,7 +110,7 @@ export default function Login() {
 
           <div className="text-center text-sm text-gray-600 dark:text-gray-400">
             ¿No tienes una cuenta?{' '}
-            <Link href="/register" className="font-medium text-primary hover:underline">
+            <Link href="/userRegister" className="font-medium text-primary hover:underline">
               Regístrate ahora
             </Link>
           </div>
@@ -124,7 +124,7 @@ export default function Login() {
           <h1 className="text-4xl font-bold leading-tight">Asegurando la seguridad del estado</h1>
           
           <p className="text-lg leading-relaxed">
-            Vigilante es un ecosistema desarrollado mediante la vigilancia de
+            VIGILANTE es un ecosistema desarrollado mediante la vigilancia de
             cámaras que estén conectadas al ecosistema y con ayuda de IA y servicios Cloud
             podemos mantener al usuario, sector salud y seguridad coordinados para evitar y asegurar
             la seguridad de sus ciudadanos.
