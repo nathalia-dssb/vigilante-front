@@ -53,7 +53,7 @@ export default function HeroSection() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: index * 0.2, duration: 0.5 }}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-4"
                 >
                   <item.icon className="h-5 w-5 text-vtblue" />
                   <span className="text-sm md:text-base">{item.text}</span>

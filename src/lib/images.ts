@@ -3,6 +3,9 @@ import ProteccionCivil from '@/public/proteccion.png';
 import GCP from '@/public/gcp.svg';
 import POES from '@/public/poes.png';
 import OpenAI from '@/public/OpenAI.webp';
+import platformOverview from '@/public/platformOverview.png'
+import alertFlow from '@/public/alertFlow.png'
+import communityApp from '@/public/communityApp.png'
 
 export const Images = {
   about: About,
@@ -10,6 +13,9 @@ export const Images = {
     proteccionCivil: ProteccionCivil,
     gcp: GCP,
     poes: POES,
-    openai: OpenAI
+    openai: OpenAI,
+    platformOverview: platformOverview,
+    alertFlow: alertFlow,
+    communityApp: communityApp
   }
 };

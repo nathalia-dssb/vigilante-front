@@ -1,5 +1,5 @@
 'use client'
-import { Shield, HeartPulse, Eye, Cloud, UsersGroupRounded, Global, Cpu, ShieldCheck } from "@solar-icons/react"
+import { Shield, HeartPulse, Eye, UsersGroupRounded, Global, Cpu, ShieldCheck } from "@solar-icons/react"
 import { motion } from "framer-motion"
 import Image from "next/image"
 import Link from "next/link"

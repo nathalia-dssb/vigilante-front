@@ -5,10 +5,108 @@ import { Button } from "@/components/ui/button"
 import { Eye, Shield, User, HeartPulse, CheckCircle } from "@solar-icons/react"
 import Link from "next/link"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useCitizens } from "@/hooks/useCitizens"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 
-export default function userRegister() {
+export default function UserRegister() {
+  const { createCitizen, loading, error } = useCitizens()
+  const router = useRouter()
+  
+  // Estado para los datos del formulario
+  const [formData, setFormData] = useState({
+    nombre: '',
+    apellidos: '',
+    curp: '',
+    fecha_nacimiento: '',
+    sexo: '',
+    domicilio: {
+      calle: '',
+      codigo_postal: '',
+      estado: '',
+      municipio: '',
+      colonia: ''
+    },
+    correo: '',
+    telefono: '',
+    contrasena: '',
+    confirmPassword: ''
+  })
+
+  const [passwordMatch, setPasswordMatch] = useState(true)
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
+
+  const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      domicilio: {
+        ...prev.domicilio,
+        [name]: value
+      }
+    }))
+  }
+
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    // Validar que las contraseñas coincidan
+    if (formData.contrasena !== formData.confirmPassword) {
+      setPasswordMatch(false)
+      toast.error('Las contraseñas no coinciden')
+      return
+    }
+    setPasswordMatch(true)
+
+    try {
+      // Crear el objeto ciudadano para la API
+      const citizenData = {
+        nombre: formData.nombre,
+        apellidos: formData.apellidos,
+        curp: formData.curp.toUpperCase(),
+        fecha_nacimiento: new Date(formData.fecha_nacimiento),
+        sexo: formData.sexo === 'male' ? 'H' : 'M', // Convertir a H/M
+        domicilio: {
+          calle: formData.domicilio.calle,
+          codigo_postal: parseInt(formData.domicilio.codigo_postal),
+          estado: formData.domicilio.estado,
+          municipio: formData.domicilio.municipio,
+          colonia: formData.domicilio.colonia
+        },
+        correo: formData.correo,
+        telefono: formData.telefono,
+        contrasena: formData.contrasena
+      }
+
+      const result = await createCitizen(citizenData)
+      
+      if (result) {
+        toast.success('Registro exitoso! Bienvenido a Vigilante')
+        router.push('/dashboard') // Redirigir al dashboard después del registro
+      }
+    } catch (err) {
+      toast.error('Error al registrar. Por favor intenta nuevamente')
+      console.error('Registration error:', err)
+    }
+  }
+
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex pt-18">
       {/* Sección izquierda - Formulario */}
       <div className="w-full md:w-1/2 bg-white dark:bg-gray-900 flex items-center justify-center p-8 overflow-y-auto">
         <div className="max-w-md w-full space-y-6">
@@ -17,27 +115,39 @@ export default function userRegister() {
             <p className="mt-2 text-gray-600 dark:text-gray-400">Por favor proporciona la siguiente información para continuar</p>
           </div>
 
-          <form className="mt-8 space-y-6">
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="mt-8 space-y-6">
             {/* Sección de Información Personal */}
             <div className="space-y-4">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white border-b pb-2">Información personal</h2>
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="firstName">Nombre(s)*</Label>
+                  <Label htmlFor="nombre">Nombre(s)*</Label>
                   <Input
-                    id="firstName"
+                    id="nombre"
+                    name="nombre"
                     type="text"
                     placeholder="Ej. Juan"
+                    value={formData.nombre}
+                    onChange={handleChange}
                     required
                   />
                 </div>
                 <div>
-                  <Label htmlFor="lastName">Apellidos*</Label>
+                  <Label htmlFor="apellidos">Apellidos*</Label>
                   <Input
-                    id="lastName"
+                    id="apellidos"
+                    name="apellidos"
                     type="text"
                     placeholder="Ej. Pérez López"
+                    value={formData.apellidos}
+                    onChange={handleChange}
                     required
                   />
                 </div>
@@ -47,26 +157,36 @@ export default function userRegister() {
                 <Label htmlFor="curp">CURP*</Label>
                 <Input
                   id="curp"
+                  name="curp"
                   type="text"
                   placeholder="Ej. PELJ920313HDFLPN01"
                   pattern="[A-Z]{4}[0-9]{6}[A-Z]{6}[0-9A-Z]{2}"
                   title="Formato: 4 letras, 6 números, 6 letras, 2 alfanuméricos"
+                  value={formData.curp}
+                  onChange={handleChange}
                   required
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="birthDate">Fecha de nacimiento*</Label>
+                  <Label htmlFor="fecha_nacimiento">Fecha de nacimiento*</Label>
                   <Input
-                    id="birthDate"
+                    id="fecha_nacimiento"
+                    name="fecha_nacimiento"
                     type="date"
+                    value={formData.fecha_nacimiento}
+                    onChange={handleChange}
                     required
                   />
                 </div>
                 <div>
-                  <Label htmlFor="gender">Sexo*</Label>
-                  <Select required>
+                  <Label htmlFor="sexo">Sexo*</Label>
+                  <Select 
+                    required
+                    onValueChange={(value) => handleSelectChange('sexo', value)}
+                    value={formData.sexo}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Seleccionar" />
                     </SelectTrigger>
@@ -84,29 +204,41 @@ export default function userRegister() {
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white border-b pb-2">Domicilio</h2>
               
               <div>
-                <Label htmlFor="street">Calle y número*</Label>
+                <Label htmlFor="calle">Calle y número*</Label>
                 <Input
-                  id="street"
+                  id="calle"
+                  name="calle"
                   type="text"
                   placeholder="Ej. Av. Principal #123"
+                  value={formData.domicilio.calle}
+                  onChange={handleAddressChange}
                   required
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="zipCode">Código Postal*</Label>
+                  <Label htmlFor="codigo_postal">Código Postal*</Label>
                   <Input
-                    id="zipCode"
+                    id="codigo_postal"
+                    name="codigo_postal"
                     type="text"
                     placeholder="Ej. 12345"
                     pattern="[0-9]{5}"
+                    value={formData.domicilio.codigo_postal}
+                    onChange={handleAddressChange}
                     required
                   />
                 </div>
                 <div>
-                  <Label htmlFor="state">Estado*</Label>
-                  <Select required>
+                  <Label htmlFor="estado">Estado*</Label>
+                  <Select 
+                    required
+                    onValueChange={(value) => handleAddressChange({
+                      target: { name: 'estado', value }
+                    } as React.ChangeEvent<HTMLInputElement>)}
+                    value={formData.domicilio.estado}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Seleccionar estado" />
                     </SelectTrigger>
@@ -121,20 +253,26 @@ export default function userRegister() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="city">Ciudad/Municipio*</Label>
+                  <Label htmlFor="municipio">Ciudad/Municipio*</Label>
                   <Input
-                    id="city"
+                    id="municipio"
+                    name="municipio"
                     type="text"
                     placeholder="Ej. Ciudad de México"
+                    value={formData.domicilio.municipio}
+                    onChange={handleAddressChange}
                     required
                   />
                 </div>
                 <div>
-                  <Label htmlFor="neighborhood">Colonia*</Label>
+                  <Label htmlFor="colonia">Colonia*</Label>
                   <Input
-                    id="neighborhood"
+                    id="colonia"
+                    name="colonia"
                     type="text"
                     placeholder="Ej. Centro"
+                    value={formData.domicilio.colonia}
+                    onChange={handleAddressChange}
                     required
                   />
                 </div>
@@ -146,34 +284,43 @@ export default function userRegister() {
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white border-b pb-2">Credenciales de acceso</h2>
               
               <div>
-                <Label htmlFor="email">Correo electrónico*</Label>
+                <Label htmlFor="correo">Correo electrónico*</Label>
                 <Input
-                  id="email"
+                  id="correo"
+                  name="correo"
                   type="email"
                   placeholder="tu@email.com"
+                  value={formData.correo}
+                  onChange={handleChange}
                   required
                 />
               </div>
               
               <div>
-                <Label htmlFor="phone">Teléfono*</Label>
+                <Label htmlFor="telefono">Teléfono*</Label>
                 <Input
-                  id="phone"
+                  id="telefono"
+                  name="telefono"
                   type="tel"
                   placeholder="Ej. 5512345678"
                   pattern="[0-9]{10}"
+                  value={formData.telefono}
+                  onChange={handleChange}
                   required
                 />
               </div>
               
               <div>
-                <Label htmlFor="password">Contraseña*</Label>
+                <Label htmlFor="contrasena">Contraseña*</Label>
                 <Input 
-                  id="password"
+                  id="contrasena"
+                  name="contrasena"
                   type="password" 
                   placeholder="Crea tu contraseña" 
                   icon={Eye} 
                   iconPosition="right" 
+                  value={formData.contrasena}
+                  onChange={handleChange}
                   required
                 />
                 <div className="mt-2 space-y-2">
@@ -192,12 +339,19 @@ export default function userRegister() {
                 <Label htmlFor="confirmPassword">Confirmar contraseña*</Label>
                 <Input 
                   id="confirmPassword"
+                  name="confirmPassword"
                   type="password" 
                   placeholder="Repite tu contraseña" 
                   icon={Eye} 
                   iconPosition="right" 
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
                   required
+                  className={!passwordMatch ? 'border-red-500' : ''}
                 />
+                {!passwordMatch && (
+                  <p className="mt-1 text-sm text-red-600">Las contraseñas no coinciden</p>
+                )}
               </div>
             </div>
 
@@ -213,8 +367,12 @@ export default function userRegister() {
               </label>
             </div>
 
-            <Button type="submit" className="w-full bg-vtdarkblue hover:bg-vtdarkblue/90 mt-6">
-              Completar registro
+            <Button 
+              type="submit" 
+              className="w-full bg-vtdarkblue hover:bg-vtdarkblue/90 mt-6"
+              disabled={loading}
+            >
+              {loading ? 'Registrando...' : 'Completar registro'}
             </Button>
           </form>
 
@@ -239,7 +397,6 @@ export default function userRegister() {
 
           <p className="text-lg font-medium">Beneficios exclusivos para miembros registrados:</p>
 
-          {/* Tarjetas de beneficios */}
           <div className="grid grid-cols-3 gap-4 mt-8">
             {[
               { icon: Shield, title: "Seguridad", desc: "Manejado por servicios Cloud de seguridad" },

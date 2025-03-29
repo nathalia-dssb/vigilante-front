@@ -28,14 +28,14 @@ export default function NavBar() {
   }, []);
 
   const navLinks = [
-    { name: "Products", href: "/products" },
-    { name: "Resources", href: "/resources" },
-    { name: "Blog", href: "/blog" },
+    { name: "DASHBOARD", href: "/dashboard" },
+    { name: "RECURSOS", href: "/rsrc" },
+    { name: "ASISTENCIA", href: "/asistance" },
   ];
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 mb-6 ${
         scrolled
           ? "bg-vtdarkblue/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200/10 dark:border-gray-800/10"
           : "bg-vtdarkblue dark:bg-gray-900 border-b border-transparent"
@@ -54,7 +54,7 @@ export default function NavBar() {
                 className="h-8 w-auto"
               />
               <span className="text-xl font-bold text-vtwhite dark:text-white">
-                Vigilante
+                VIGILANTE
               </span>
             </Link>
           </div>
@@ -65,7 +65,7 @@ export default function NavBar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-vtwhite dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors duration-200 font-medium px-3 py-2 rounded-md"
+                className="text-vtwhite dark:text-gray-300 transition-colors duration-200 font-medium px-3 py-2 rounded-md"
               >
                 {link.name}
               </Link>
@@ -74,11 +74,11 @@ export default function NavBar() {
 
           {/* Botones desktop */}
           <div className="hidden md:flex items-center space-x-3">
-            <Button variant="ghost" asChild className="text-vtwhite hover:bg-vtblue/20">
-              <Link href="/login">Log In</Link>
+            <Button variant="ghost" asChild className="text-vtwhite hover:bg-vtwhite">
+              <Link href="/LogIn">Iniciar Sesión</Link>
             </Button>
             <Button variant="default" asChild className="bg-vtblue hover:bg-vtblue/90">
-              <Link href="/register">Register</Link>
+              <Link href="/userRegister">Registrarse</Link>
             </Button>
           </div>
 

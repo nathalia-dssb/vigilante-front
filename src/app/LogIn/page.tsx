@@ -7,7 +7,7 @@ import Link from "next/link"
 
 export default function Login() {
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex pt-20">
       {/* Sección izquierda - Formulario */}
       <div className="w-full md:w-1/2 bg-white dark:bg-gray-900 flex items-center justify-center p-8">
         <div className="max-w-md w-full space-y-6">
