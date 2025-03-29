@@ -33,16 +33,18 @@ export function useAlerts(): UseAlerts {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/alerts';
+  // Asegúrate de que la URL base NO termina con slash si tus rutas empiezan con slash
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api';
   console.log('API_BASE_URL:', API_BASE_URL);
 
   const handleRequest = async <T,>(url: string, options?: RequestInit): Promise<T | undefined> => {
-    console.log(`Iniciando solicitud a ${url}`, { options });
+    console.log(`Iniciando solicitud a ${API_BASE_URL}${url}`, { options });
     setLoading(true);
     setError(null);
     
     try {
-      const response = await fetch(`${API_BASE_URL}`, {
+      // CORRECCIÓN AQUÍ: Concatenar API_BASE_URL con url
+      const response = await fetch(`${API_BASE_URL}${url}`, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -116,7 +118,13 @@ export function useAlerts(): UseAlerts {
     const result = await handleRequest<Alerta[]>('/alerts');
     if (result) {
       console.log(`Se obtuvieron ${result.length} alertas`);
-      setAlerts(result);
+      // Normaliza los datos si es necesario para manejar diferencias de estructura
+      const normalizedAlerts = result.map(alert => ({
+        ...alert,
+        title: alert.title || 'Sin título',
+        descripcion: alert.descripcion || 'Sin descripción'
+      }));
+      setAlerts(normalizedAlerts);
       console.log('Alertas actualizadas en el estado');
     } else {
       console.log('No se pudieron obtener las alertas');

@@ -1,22 +1,24 @@
-import { useCallback } from "react";
 
-// types.ts
 export type AlertSeverity = "alta" | "media" | "baja";
 export type AlertType = "salud" | "transporte" | "seguridad" | "ambiental" | "social" | "transito";
 
-export interface AlertData {
-  id: string;
-  title: string;
-  description: string;
-  latitude: number;
-  longitude: number;
-  severity?: AlertSeverity;
-  type?: AlertType;// Usamos Date aquí para consistencia en el modelo
+// Interfaz para los datos que vienen de la API
+export interface AlertaFromAPI {
+  _id: string;
+  descripcion: string;
+  suceso?: string; // Hacer opcional según tu caso real
+  ubicacion: {
+    latitud: number;
+    longitud: number;
+  };
+  fecha: string;
+  clasificacion: string;
+  severidad: string;
 }
-
-interface RawAlertData {
-  _id?: string;
-  suceso: string;
+export interface RawAlert {
+  _id: string;
+  descripcion: string;
+  suceso: string; // Ahora requerido basado en tus datos de ejemplo
   ubicacion: {
     latitud: number;
     longitud: number;
@@ -26,63 +28,97 @@ interface RawAlertData {
   severidad: string;
 }
 
+// Interfaz para datos normalizados usados en el frontend
+export interface AlertData {
+  id: string;
+  title: string;
+  description: string;
+  latitude: number;
+  longitude: number;
+  severity: AlertSeverity;
+  type: AlertType;
+  updatedAt: string;
+}
+
+// Función mejorada para convertir severidad
 export function toAlertSeverity(severity?: string | null): AlertSeverity {
-  const validSeverities: AlertSeverity[] = ["alta", "media", "baja"];
-  const normalizedSeverity = severity?.toLowerCase() as AlertSeverity;
-  return severity && validSeverities.includes(normalizedSeverity) 
-    ? normalizedSeverity 
-    : "media"; // Valor por defecto
+  if (!severity) return 'media';
+  
+  const lowerSeverity = severity.toLowerCase();
+  switch (lowerSeverity) {
+    case 'alta':
+    case 'media':
+    case 'baja':
+      return lowerSeverity;
+    default:
+      return 'media';
+  }
 }
 
+// Función mejorada para convertir tipo
 export function toAlertType(type?: string | null): AlertType {
-  const validTypes: AlertType[] = ["salud", "transporte", "seguridad", "ambiental", "social", "transito"];
-  const normalizedType = type?.toLowerCase() as AlertType;
-  return type && validTypes.includes(normalizedType)
-    ? normalizedType
-    : "seguridad"; // Valor por defecto
+  if (!type) return 'seguridad';
+  
+  const lowerType = type.toLowerCase();
+  switch (lowerType) {
+    case 'salud':
+    case 'transporte':
+    case 'seguridad':
+    case 'ambiental':
+    case 'social':
+    case 'transito':
+      return lowerType;
+    default:
+      return 'seguridad';
+  }
 }
 
-export function toAlertData(rawData: RawAlertData): AlertData {
-  // Función auxiliar para normalizar la severidad
-  const normalizeSeverity = (severidad: string): AlertSeverity => {
-    const lowerSeverity = severidad.toLowerCase();
-    if (['alta', 'media', 'baja'].includes(lowerSeverity)) {
-      return lowerSeverity as AlertSeverity;
-    }
-    return 'media'; // Valor por defecto
-  };
-
-  // Función auxiliar para determinar el tipo
-  const classifyType = (clasificacion: string): AlertType => {
-    const lowerCase = clasificacion.toLowerCase();
-    
-    if (lowerCase.includes('transito') || lowerCase.includes('accidente') || lowerCase.includes('vehicular')) {
-      return 'transporte';
-    }
-    if (lowerCase.includes('salud') || lowerCase.includes('médic') || lowerCase.includes('hospital')) {
-      return 'salud';
-    }
-    if (lowerCase.includes('seguridad') || lowerCase.includes('polic') || lowerCase.includes('rob')) {
-      return 'seguridad';
-    }
-    if (lowerCase.includes('ambiental') || lowerCase.includes('forestal')) {
-      return 'ambiental';
-    }
-    if (lowerCase.includes('social') || lowerCase.includes('disturbio')) {
-      return 'social';
-    }
-    return toAlertType(clasificacion); // Usar la función de conversión estándar como fallback
-  };
-
-  // Convertir fecha a objeto Date si es strings
-
+// Función robusta para transformar datos crudos a normalizados
+export function toAlertData(rawData: AlertaFromAPI): AlertData {
+  // Asegurar valores por defecto para campos opcionales
+  const title = rawData.suceso || rawData.descripcion || 'Sin título';
+  
   return {
-    id: rawData._id || '', // Proporcionar valor por defecto para _id opcional
-    title: rawData.suceso,
-    description: rawData.suceso, // Usamos el suceso como descripción
+    id: rawData._id,
+    title: title,
+    description: rawData.descripcion || title, // Usar title como fallback
     latitude: rawData.ubicacion.latitud,
     longitude: rawData.ubicacion.longitud,
-    severity: normalizeSeverity(rawData.severidad),
-    type: classifyType(rawData.clasificacion)
+    severity: toAlertSeverity(rawData.severidad),
+    type: toAlertType(rawData.clasificacion),
+    updatedAt: rawData.fecha
   };
+}
+
+// Función auxiliar mejorada para clasificación de tipos
+function classifyAlertType(clasificacion?: string): AlertType {
+  if (!clasificacion) return 'seguridad';
+
+  const lowerCase = clasificacion.toLowerCase();
+
+  // Mapeo de palabras clave a tipos
+  const typeMap: Record<string, AlertType> = {
+    transito: 'transporte',
+    accidente: 'transporte',
+    vehicular: 'transporte',
+    salud: 'salud',
+    medic: 'salud',
+    hospital: 'salud',
+    seguridad: 'seguridad',
+    polic: 'seguridad',
+    rob: 'seguridad',
+    ambiental: 'ambiental',
+    forestal: 'ambiental',
+    social: 'social',
+    disturbio: 'social'
+  };
+
+  // Buscar coincidencia en palabras clave
+  for (const [keyword, type] of Object.entries(typeMap)) {
+    if (lowerCase.includes(keyword)) {
+      return type;
+    }
+  }
+
+  return toAlertType(clasificacion); // Fallback a conversión básica
 }

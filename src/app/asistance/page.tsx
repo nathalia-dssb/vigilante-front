@@ -4,6 +4,7 @@ import { AltArrowLeft, ChatSquare } from "@solar-icons/react"
 import { motion } from "framer-motion"
 import Link from 'next/link'
 import { useAssistant } from '@/hooks/useAsistant'
+import { useSearchParams } from 'next/navigation'
 
 export default function Asistencia() {
   const [input, setInput] = useState('')
@@ -15,17 +16,38 @@ export default function Asistencia() {
     sendMessage, 
     clearMessages 
   } = useAssistant()
+  
+  // Obtener parámetros de la URL
+  const searchParams = useSearchParams()
+  const incidentId = searchParams.get('id')
+  const event = searchParams.get('suceso')
+  const description = searchParams.get('description')
+  const latitude = searchParams.get('latitude')
+  const longitude = searchParams.get('longitude')
+  const severity = searchParams.get('severity')
+  const type = searchParams.get('type')
+  const updatedAt = searchParams.get('updatedAt')
 
-  // Mensaje inicial del asistente
+  // Mensaje inicial del asistente con información del incidente
   useEffect(() => {
     clearMessages()
-    // Agregar mensaje inicial
-    sendMessage('saludo').then(() => {
-      // Esto activará el mensaje de bienvenida
-      // Necesitarás manejar este caso especial en tu API
+    
+    // Construir mensaje con la información del incidente
+    let incidentInfo = 'Hola, tengo información sobre un incidente:\n'
+    if (event) incidentInfo += `- Evento: ${event.replace(/\+/g, ' ')}\n`
+    if (description) incidentInfo += `- Descripción: ${description.replace(/\+/g, ' ')}\n`
+    if (type) incidentInfo += `- Tipo: ${type}\n`
+    if (severity) incidentInfo += `- Gravedad: ${severity}\n`
+    if (latitude && longitude) incidentInfo += `- Ubicación: Lat ${latitude}, Long ${longitude}\n`
+    if (updatedAt) incidentInfo += `- Actualizado: ${new Date(updatedAt).toLocaleString()}\n`
+    
+    // Agregar mensaje inicial con la información del incidente
+    sendMessage(incidentInfo).then(() => {
+      // Esto enviará la información del incidente al bot
     })
-  }, [clearMessages, sendMessage])
+  }, [clearMessages, sendMessage, event, description, type, severity, latitude, longitude, updatedAt])
 
+  // Resto del código permanece igual...
   // Auto-scroll al final de los mensajes
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })

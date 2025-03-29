@@ -5,7 +5,7 @@ import Alert from "@/components/Alert";
 import { AlertModal } from "@/components/AlertModal";
 import { useState, useEffect } from "react";
 import { useAlerts } from "@/hooks/useAlerts";
-import { AlertData, toAlertData } from "@/types/types"; // Importa desde types.ts
+import { AlertData, toAlertData, toAlertSeverity, toAlertType } from "@/types/types";
 
 function Dashboard() {
   const { alerts, loading, error, getAllAlerts } = useAlerts();
@@ -14,31 +14,21 @@ function Dashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
-    getAllAlerts();
+    const fetchAlerts = async () => {
+      try {
+        await getAllAlerts();
+        console.log("Alertas recibidas:", alerts);
+      } catch (err) {
+        console.error("Error al obtener alertas:", err);
+      }
+    };
+
+    fetchAlerts();
   }, []);
 
-// Dashboard.tsx
-const normalizedAlerts = alerts.map(alert => {
-  const alertData = toAlertData({
-    _id: alert._id,
-    suceso: alert.descripcion,
-    ubicacion: {
-      latitud: alert.ubicacion.latitud,
-      longitud: alert.ubicacion.longitud
-    },
-    fecha: alert.fecha,
-    clasificacion: alert.clasificacion,
-    severidad: alert.severidad // Nuevo campo añadido
-  });
-  return alertData;
-});
-  const filteredAlerts =
-    filter === "all"
-      ? normalizedAlerts
-      : normalizedAlerts.filter((alerta) => alerta.type === filter);
-
-  const handleAlertClick = (alerta: AlertData) => {
-    setSelectedAlert(alerta);
+  const handleAlertClick = (alertData: AlertData) => {
+    console.log("Alerta seleccionada:", alertData);
+    setSelectedAlert(alertData);
     setIsModalOpen(true);
   };
 
@@ -113,21 +103,26 @@ const normalizedAlerts = alerts.map(alert => {
         </div>
 
         {/* Lista de alertas */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredAlerts.length > 0 ? (
-            filteredAlerts.map((alerta) => (
-              <Alert 
-                key={alerta.id} 
-                data={alerta} 
-                onClick={() => handleAlertClick(alerta)}
-              />
-            ))
-          ) : (
-            <div className="col-span-full text-center text-gray-500">
-              No hay alertas disponibles para este filtro.
-            </div>
-          )}
-        </div>
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+  {alerts.length > 0 ? (
+    alerts
+      .filter(alert => filter === "all" || alert.clasificacion === filter)
+      .map(alert => {
+        const alertData = toAlertData(alert);
+        return (
+          <Alert 
+            key={alertData.id}
+            data={alertData}
+            onClick={() => handleAlertClick(alertData)}
+          />
+        );
+      })
+  ) : (
+    <div className="col-span-full text-center text-gray-500">
+      No hay alertas disponibles.
+    </div>
+  )}
+</div>
       </div>
 
       {/* Modal para alerta seleccionada */}

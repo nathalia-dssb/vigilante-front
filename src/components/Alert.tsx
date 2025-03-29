@@ -4,16 +4,21 @@ import { Card, CardHeader, CardDescription } from "@/components/ui/card";
 import { useState, useEffect, useCallback } from "react";
 import React from "react";
 import { AlertSeverity, AlertType, AlertData as TypesAlertData, toAlertSeverity } from "@/types/types";
-import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { Button } from "./ui/button";
+import { Router } from "next/router";
 
 // Definimos AlertData extendiendo el tipo original y asegurando todos los campos requeridos
-interface AlertData extends Omit<TypesAlertData, 'updatedAt'> {
+interface AlertData {
     id: string;
-    title: string;
-    updatedAt?: string; // Opcional
-    severity?: AlertSeverity; // Opcional
-    type?: AlertType; // Opcional
-}
+    suceso: string;
+    description: string;
+    latitude: number;
+    longitude: number;
+    severity?: AlertSeverity;
+    type?: AlertType;
+    updatedAt?: string;
+  }
 
 interface GoogleMapEmbedProps {
   latitude: number;
@@ -88,10 +93,16 @@ export default function Alert({
   expanded = false,
   onClick,
 }: AlertProps) {
-  // Estado inicial completo con todos los campos requeridos
+    const router = useRouter();
+    console.log("Props recibidas en Alert:", {
+        data,
+        apiEndpoint,
+        defaultLocation,
+        expanded
+      });  // Estado inicial completo con todos los campos requeridos
   const [alertData, setAlertData] = useState<AlertData>({
     id: 'loading',
-    title: "Cargando...",
+    suceso: "Cargando...",
     description: "Obteniendo información de la alerta...",
     latitude: defaultLocation.latitude,
     longitude: defaultLocation.longitude,
@@ -103,9 +114,10 @@ export default function Alert({
 
   // Función de normalización robusta que maneja todos los campos
   const normalizeAlertData = useCallback((rawData: any): AlertData => {
+    console.log("Datos crudos recibidos para normalización:", rawData);
     return {
       id: rawData.id || rawData._id || '',
-      title: rawData.suceso || rawData.title || 'Sin título',
+      suceso: rawData.suceso || rawData.title || 'Sin título',
       description: rawData.description || rawData.suceso || 'Sin descripción',
       latitude: rawData.latitude || rawData.ubicacion?.latitud || defaultLocation.latitude,
       longitude: rawData.longitude || rawData.ubicacion?.longitud || defaultLocation.longitude,
@@ -136,7 +148,7 @@ export default function Alert({
           console.error("Error al obtener datos de alerta:", error);
           setAlertData({
             id: 'error',
-            title: "Error",
+            suceso: "Error",
             description: "No se pudieron cargar los datos de la alerta",
             latitude: defaultLocation.latitude,
             longitude: defaultLocation.longitude,
@@ -152,7 +164,7 @@ export default function Alert({
       console.warn("No se proporcionaron datos ni API endpoint para Alert");
       setAlertData({
         id: 'error',
-        title: "Error",
+        suceso: "Error",
         description: "No se pudieron cargar los datos de la alerta",
         latitude: defaultLocation.latitude,
         longitude: defaultLocation.longitude,
@@ -188,6 +200,24 @@ export default function Alert({
     return severityStyles[alertData.severity] || severityStyles.default;
   };
 
+  const handleAssistanceClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Evita que se propague el evento onClick del Card
+    
+    // Construye el objeto de query params
+    const queryParams = new URLSearchParams({
+      id: alertData.id,
+      suceso: alertData.suceso,
+      description: alertData.description,
+      latitude: alertData.latitude.toString(),
+      longitude: alertData.longitude.toString(),
+      severity: alertData.severity || 'media',
+      type: alertData.type || 'seguridad',
+      updatedAt: alertData.updatedAt || ''
+    }).toString();
+
+    router.push(`/asistance?${queryParams}`);
+  };
+
   return (
     <div 
       className={`w-full ${expanded ? "max-w-2xl" : "max-w-md"} cursor-pointer`}
@@ -204,7 +234,7 @@ export default function Alert({
         >
           <div className="flex justify-between items-center">
             <h1 className={`font-bold ${expanded ? "text-2xl" : "text-xl"} text-current`}>
-              {alertData.type}
+              {alertData.suceso}
             </h1>
             {alertData.severity && (
               <span className={`px-2 py-1 text-xs rounded-full ${getSeverityStyle()}`}>
@@ -247,20 +277,15 @@ export default function Alert({
               {/* Línea separadora con imagen */}
               <div className="md:col-span-2 border-t border-gray-200 pt-4">
                 <div className="flex flex-col items-center">
-                  <h3 className="font-semibold mb-2">Tipo de Alerta</h3>
-                  <div className="relative w-32 h-32 rounded-lg overflow-hidden border border-gray-200 shadow-sm">
-                    <Image 
-                      src={getAlertImage(alertData.type)} 
-                      alt={`Icono de ${alertData.type}`}
-                      fill
-                      style={{ objectFit: 'cover' }}
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                    />
-                  </div>
+                  <Button 
+                    onClick={handleAssistanceClick}
+                    className="mt-4 mb-4 bg-red-500 hover:bg-red-600 text-white"
+                    >
+                    Pedir Ayuda
+                    </Button>                  </div>
                   <p className="mt-2 text-sm text-gray-600">
                     {getAlertDescription(alertData.type)}
                   </p>
-                </div>
               </div>
             </div>
           )}
